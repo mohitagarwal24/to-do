@@ -22,15 +22,27 @@ function App() {
   }
 
   useEffect(() => {
-    const todos = JSON.parse(localStorage.getItem("todos"))
-
-    if (todos && todos.length > 0 ) {
-      setTodos(todos)
+    try {
+      const storedTodos = localStorage.getItem("todos")
+      if (storedTodos) {
+        const parsedTodos = JSON.parse(storedTodos)
+        if (Array.isArray(parsedTodos) && parsedTodos.length > 0) {
+          setTodos(parsedTodos)
+        }
+      }
+    } catch (error) {
+      console.error("Error loading todos from localStorage:", error)
+      // Clear corrupted data
+      localStorage.removeItem("todos")
     }
   }, [])
 
   useEffect(() => {
-  localStorage.setItem("todos", JSON.stringify(todos))  
+    try {
+      localStorage.setItem("todos", JSON.stringify(todos))
+    } catch (error) {
+      console.error("Error saving todos to localStorage:", error)
+    }
   }, [todos])
   
   
