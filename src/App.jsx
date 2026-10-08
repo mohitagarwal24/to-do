@@ -4,6 +4,7 @@ import { TodoProvider } from "./context";
 
 function App() {
   const [todos, setTodos] = useState([])
+  const [hasHydratedTodos, setHasHydratedTodos] = useState(false)
 
   const addTodos = (todo) => {
    setTodos((prevTodos)=> [{id: Date.now(), ...todo}, ...prevTodos])
@@ -22,16 +23,29 @@ function App() {
   }
 
   useEffect(() => {
-    const todos = JSON.parse(localStorage.getItem("todos"))
-
-    if (todos && todos.length > 0 ) {
-      setTodos(todos)
+    try {
+      const stored = localStorage.getItem("todos")
+      if (stored) {
+        const todos = JSON.parse(stored)
+        if (Array.isArray(todos) && todos.length > 0) {
+          setTodos(todos)
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to load todos from localStorage:", err)
+    } finally {
+      setHasHydratedTodos(true)
     }
   }, [])
 
   useEffect(() => {
-  localStorage.setItem("todos", JSON.stringify(todos))  
-  }, [todos])
+    if (!hasHydratedTodos) return
+    try {
+      localStorage.setItem("todos", JSON.stringify(todos))
+    } catch (err) {
+      console.warn("Failed to save todos to localStorage:", err)
+    }
+  }, [todos, hasHydratedTodos])
   
   
 
